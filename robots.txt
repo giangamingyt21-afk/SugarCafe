@@ -1,0 +1,16 @@
+# Sugar Cafe - robots.txt
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /user/
+Disallow: /checkout
+Disallow: /cart
+Disallow: /includes/
+Disallow: /assets/uploads/users/
+
+# Sitemap
+Sitemap: /sitemap.php
+
+# Crawl delay
+Crawl-delay: 1

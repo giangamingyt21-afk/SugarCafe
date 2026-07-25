@@ -1,0 +1,126 @@
+# Sugar Cafe by Georgia - Apache Configuration
+
+# Enable Rewrite Engine
+RewriteEngine On
+
+# Set RewriteBase for subfolder deployment
+RewriteBase /sugar-cafe/
+
+# API Routes - Route to config/routes.php with endpoint parameter
+RewriteRule ^api/(auth|products|orders|cart|user|admin)(.*)$ config/routes.php?endpoint=$1$2 [QSA,L]
+
+# IMPORTANT: Allow direct access to api/endpoints/*.php files
+# These are called via AJAX from the frontend and must NOT be blocked
+# The previous rule blocking api/endpoints/ caused 403 errors on all AJAX calls
+
+# Pretty URLs for user-side pages (now in user/views/)
+RewriteRule ^menu/?$ user/views/menu.php [L]
+RewriteRule ^about/?$ user/views/about.php [L]
+RewriteRule ^gallery/?$ user/views/gallery.php [L]
+RewriteRule ^contact/?$ user/views/contact.php [L]
+RewriteRule ^cart/?$ user/views/cart.php [L]
+RewriteRule ^checkout/?$ user/views/checkout.php [L]
+RewriteRule ^rewards/?$ user/views/rewards.php [L]
+RewriteRule ^promotions/?$ user/views/promotions.php [L]
+RewriteRule ^faq/?$ user/views/faq.php [L]
+RewriteRule ^login/?$ user/views/login.php [L]
+RewriteRule ^register/?$ user/views/register.php [L]
+RewriteRule ^wishlist/?$ user/views/wishlist.php [L]
+RewriteRule ^user-dashboard/?$ user/views/user-dashboard.php [L]
+RewriteRule ^user-profile/?$ user/views/user-profile.php [L]
+RewriteRule ^order-history/?$ user/views/order-history.php [L]
+RewriteRule ^order-tracking/?$ user/views/order-tracking.php [L]
+RewriteRule ^loyalty-points/?$ user/views/loyalty-points.php [L]
+RewriteRule ^privacy-policy/?$ user/views/privacy-policy.php [L]
+RewriteRule ^terms/?$ user/views/terms.php [L]
+
+# Prevent directory listing
+Options -Indexes
+
+# Prevent access to sensitive files
+<FilesMatch "\.(env|log|sql|bak|old|swp|git)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Prevent DIRECT access to config, includes, models, controllers, middleware
+# IMPORTANT: api/endpoints/ is EXCLUDED from blocking - these files must be
+# accessible via AJAX for cart, wishlist, and order functionality
+<IfModule mod_rewrite.c>
+    RewriteCond %{THE_REQUEST} ^.*/config/
+    RewriteRule ^config/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/includes/
+    RewriteRule ^includes/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/user/includes/
+    RewriteRule ^user/includes/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/user/models/
+    RewriteRule ^user/models/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/user/controllers/
+    RewriteRule ^user/controllers/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/api/models/
+    RewriteRule ^api/models/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/api/middleware/
+    RewriteRule ^api/middleware/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/api/controllers/
+    RewriteRule ^api/controllers/ - [F,L]
+    
+    # NOTE: api/endpoints/ is intentionally NOT blocked here
+    # These PHP files are the AJAX API endpoints that the frontend calls directly
+    # Blocking them caused "Access Denied" (403) errors on all cart/wishlist/order operations
+    
+    RewriteCond %{THE_REQUEST} ^.*/admin/models/
+    RewriteRule ^admin/models/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/admin/controllers/
+    RewriteRule ^admin/controllers/ - [F,L]
+    
+    RewriteCond %{THE_REQUEST} ^.*/admin/includes/
+    RewriteRule ^admin/includes/ - [F,L]
+</IfModule>
+
+# Security Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access 1 month"
+    ExpiresByType image/jpeg "access 1 month"
+    ExpiresByType image/gif "access 1 month"
+    ExpiresByType image/png "access 1 month"
+    ExpiresByType image/webp "access 1 month"
+    ExpiresByType image/svg+xml "access 1 month"
+    ExpiresByType text/css "access 1 month"
+    ExpiresByType application/javascript "access 1 month"
+    ExpiresByType application/json "access 1 week"
+</IfModule>
+
+# GZIP Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json
+    AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# Error Documents
+ErrorDocument 404 /sugar-cafe/user/views/404.php
+ErrorDocument 500 /sugar-cafe/user/views/500.php
+
+# PHP Settings
+<IfModule mod_php.c>
+    php_value upload_max_filesize 10M
+    php_value post_max_size 10M
+    php_value max_execution_time 60
+</IfModule>
